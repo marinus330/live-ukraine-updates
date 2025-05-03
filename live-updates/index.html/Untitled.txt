@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Ukraine War Updates</title>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+    .update {
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #444;
+      padding-bottom: 1rem;
+    }
+    .timestamp {
+      font-size: 0.85rem;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>Live Ukraine War Updates</h1>
+  <div id="updates">Loading updates...</div>
+
+  <script>
+    async function fetchUpdates() {
+      const proxy = "https://corsproxy.io/?";
+      const feedUrl = "https://liveuamap.com/rss";
+      const fullUrl = proxy + encodeURIComponent(feedUrl);
+
+      try {
+        const response = await fetch(fullUrl);
+        const text = await response.text();
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(text, "text/xml");
+        const items = xml.querySelectorAll("item");
+
+        const container = document.getElementById("updates");
+        container.innerHTML = "";
+
+        items.forEach((item, i) => {
+          if (i >= 10) return;
+          const title = item.querySelector("title").textContent;
+          const date = item.querySelector("pubDate").textContent;
+
+          container.innerHTML += `
+            <div class="update">
+              <strong>${title}</strong><br/>
+              <div class="timestamp">${date}</div>
+            </div>
+          `;
+        });
+
+      } catch (err) {
+        document.getElementById("updates").innerText = "Failed to load updates.";
+        console.error("Fetch error:", err);
+      }
+    }
+
+    fetchUpdates();
+    setInterval(fetchUpdates, 60000); // Refresh every 60 seconds
+  </script>
+</body>
+</html>
